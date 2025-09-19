@@ -1,0 +1,621 @@
+/* ---------------------------
+   Google font (Manrope) + Tailwind
+   Put this file at src/index.css
+---------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------
+   Base tweaks
+---------------------------- */
+:root {
+  --grad-start: #0b0b0b; /* black */
+  --grad-mid:   #0f172a; /* slight navy tint */
+  --grad-end:   #9ca3af; /* dark silver */
+  --caret: rgba(15,23,42,0.85);
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  color: #0f172a;
+}
+
+/* ---------------------------
+   Heading gradient text
+---------------------------- */
+.gradient-text {
+  background: linear-gradient(90deg, var(--grad-start) 0%, var(--grad-mid) 48%, var(--grad-end) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Animation for the hero badge */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(0.98);
+  }
+}
+
+/* ---------------------------
+   Typewriter (sequential)
+   - typewriter-1: starts immediately
+   - typewriter-2: starts after delay (matches first duration)
+---------------------------- */
+.typewriter {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 3px solid var(--caret);
+  box-sizing: content-box;
+  /* default animations (overridden per instance via specific classes below) */
+}
+
+/* first line: duration 2.2s */
+.typewriter-1 {
+  animation:
+    typing-1 2.2s steps(28, end) forwards,
+    blink-caret 0.8s step-end infinite 2.2s;
+}
+
+/* second line: same duration, but delayed so it starts after first finishes */
+.typewriter-2 {
+  animation:
+    typing-2 2.2s steps(28, end) forwards 2.4s,
+    blink-caret 0.8s step-end infinite 4.6s;
+}
+
+/* keyframes */
+@keyframes typing-1 {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+@keyframes typing-2 {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+@keyframes blink-caret {
+  50% { border-color: transparent; }
+}
+
+/* ---------------------------
+   Blobs (soft blurred background)
+---------------------------- */
+.blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(56px);
+  mix-blend-mode: multiply;
+  opacity: 0.28;
+  pointer-events: none;
+}
+
+.blob-1 {
+  width: 18rem;
+  height: 18rem;
+  left: -6rem;
+  top: -6rem;
+  background: radial-gradient(circle at 30% 30%, rgba(99,102,241,0.18), transparent 40%);
+  animation: blob-move 18s ease-in-out infinite;
+}
+
+.blob-2 {
+  width: 20rem;
+  height: 20rem;
+  right: -6rem;
+  top: 8rem;
+  background: radial-gradient(circle at 70% 30%, rgba(236,72,153,0.12), transparent 40%);
+  animation: blob-move 18s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+.blob-3 {
+  width: 24rem;
+  height: 24rem;
+  left: 20%;
+  bottom: -8rem;
+  background: radial-gradient(circle at 50% 50%, rgba(14,165,233,0.09), transparent 45%);
+  animation: blob-move 20s ease-in-out infinite;
+  animation-delay: 6s;
+}
+
+@keyframes blob-move {
+  0%   { transform: translate(0px, 0px) scale(1); }
+  33%  { transform: translate(30px, -50px) scale(1.08); }
+  66%  { transform: translate(-20px, 20px) scale(0.96); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+/* ---------------------------
+   Buttons - consistent modern minimal look
+---------------------------- */
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 bg-slate-900 text-white font-semibold rounded-lg shadow-sm transition-shadow;
+  padding: 0.7rem 1.6rem;
+}
+.btn-primary:hover { box-shadow: 0 8px 24px rgba(15,23,42,0.12); transform: translateY(0); }
+
+.btn-outline {
+  @apply inline-flex items-center justify-center gap-2 border border-gray-300 text-slate-800 font-semibold rounded-lg bg-white;
+  padding: 0.66rem 1.4rem;
+}
+.btn-outline:hover { border-color: #94a3b8; }
+
+/* ---------------------------
+   Feature cards (centered content, no rise)
+   Hover: border becomes darker/outline appears
+---------------------------- */
+.feature-card {
+  @apply bg-white border border-slate-200 rounded-2xl p-6 text-center transition-colors;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.feature-card:hover {
+  border-color: #94a3b8;
+  /* small soft shadow (no translate) */
+  box-shadow: 0 12px 30px rgba(2,6,23,0.04);
+}
+
+/* icon color tweaks (can be controlled via Tailwind classes too) */
+.feature-card .icon-wrap svg { color: inherit; }
+
+/* ---------------------------
+   Layout / utility tweaks for hero section
+---------------------------- */
+.hero-section h1 { margin-bottom: 0.25rem; }
+.hero-section p { margin: 0; }
+
+/* smaller devices adjustments */
+@media (max-width: 640px) {
+  .typewriter { border-right-width: 2px; }
+  .typewriter.typewriter-1 { animation: typing-1 1.8s steps(22,end) forwards; }
+  .typewriter.typewriter-2 { animation: typing-2 1.8s steps(22,end) forwards 2s; }
+  .blob-1, .blob-2, .blob-3 { display: none; } /* hide blobs on very small screens for perf */
+}
+
+/* make the wisdom line slightly darker for better visibility */
+.hero-section .wisdom, .hero-section p.italic {
+  color: #475569;
+}
+
+
+/* ---------------------------
+   Blinking caret (standalone)
+---------------------------- */
+.blink-caret {
+  display: inline-block;
+  width: 3px;
+  height: 1.1em;
+  background-color: var(--caret);
+  margin-left: 4px;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% { background-color: transparent; }
+}
+
+/* Features small tweaks (paste at end of your index.css) */
+
+section[aria-labelledby="mitra-features-heading"] .overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100,100,100,0.2) transparent;
+}
+
+/* WebKit scrollbar */
+section[aria-labelledby="mitra-features-heading"] .overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+section[aria-labelledby="mitra-features-heading"] .overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(100,100,100,0.12);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* make the small footnote and wisdom lines a bit darker for visibility */
+section[aria-labelledby="mitra-features-heading"] .text-slate-400 {
+  color: #6b7280;
+}
+
+
+/* ---------------------------
+   MeetMitra section specific styles
+   Appended so hero/others remain intact
+---------------------------- */
+
+/* subtle palette vars for this section */
+:root {
+  --mitra-blob-a: rgba(124,58,237,0.08);
+  --mitra-blob-b: rgba(59,130,246,0.06);
+  --mitra-blob-c: rgba(236,72,153,0.05);
+  --mitra-phone-outline: rgba(15,23,42,0.06);
+}
+
+/* blobs used only in MeetMitra */
+.meetmitra-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(54px);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+/* positions & sizes — subtle & soft */
+.meetmitra-blob.blob-a {
+  width: 22rem;
+  height: 22rem;
+  top: -2rem;
+  left: 6%;
+  background: radial-gradient(circle at 30% 30%, var(--mitra-blob-a), transparent 40%);
+  opacity: 0.6;
+}
+.meetmitra-blob.blob-b {
+  width: 28rem;
+  height: 28rem;
+  right: -6%;
+  bottom: -6rem;
+  background: radial-gradient(circle at 70% 60%, var(--mitra-blob-b), transparent 40%);
+  opacity: 0.5;
+}
+.meetmitra-blob.blob-c {
+  width: 18rem;
+  height: 18rem;
+  top: 40%;
+  left: 28%;
+  background: radial-gradient(circle at 50% 50%, var(--mitra-blob-c), transparent 40%);
+  opacity: 0.45;
+}
+
+/* phone outline wrapper (deliberately thin so phone reads separate) */
+.phone-outer {
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  box-shadow: 0 6px 18px rgba(2,6,23,0.04);
+}
+
+/* core phone - small tweaks for bubble contrast & scroll */
+section[aria-labelledby="mitra-features-heading"] .meetmitra-phone {
+  border-radius: 12px;
+  /* leave actual height flexible on small screens but ensure min height on desktop for alignment */
+  background-clip: padding-box;
+}
+
+/* bubbles to increase contrast and visibility */
+section[aria-labelledby="mitra-features-heading"] .meetmitra-bubble {
+  box-shadow: 0 6px 18px rgba(2,6,23,0.04);
+  border: 1px solid rgba(2,6,23,0.04);
+}
+
+/* user bubble (slightly darker than background so it separates) */
+section[aria-labelledby="mitra-features-heading"] .meetmitra-bubble.user {
+  background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+  color: #0f172a;
+}
+
+/* bot bubble (tinted subtle) */
+section[aria-labelledby="mitra-features-heading"] .meetmitra-bubble.bot {
+  background: linear-gradient(180deg, #fffafc, #fffdf7);
+  color: #0f172a;
+}
+
+/* refine the inner messages scroll appearance */
+section[aria-labelledby="mitra-features-heading"] .messages {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100,100,100,0.12) transparent;
+}
+section[aria-labelledby="mitra-features-heading"] .messages::-webkit-scrollbar {
+  width: 8px;
+}
+section[aria-labelledby="mitra-features-heading"] .messages::-webkit-scrollbar-thumb {
+  background: rgba(100,100,100,0.12);
+  border-radius: 999px;
+}
+
+/* match phone & features height on desktop so the bottoms align */
+:root {
+  --mitra-phone-height-desktop: 520px;
+}
+
+@media (min-width: 1024px) {
+  section[aria-labelledby="mitra-features-heading"] .meetmitra-phone {
+    min-height: var(--mitra-phone-height-desktop);
+  }
+  section[aria-labelledby="mitra-features-heading"] .meetmitra-features-right {
+    min-height: var(--mitra-phone-height-desktop);
+  }
+}
+
+/* subtle CTA glass style */
+.meetmitra-cta {
+  background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(245,247,250,0.6));
+  border: 1px solid rgba(15,23,42,0.06);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 12px 40px rgba(2,6,23,0.06);
+  border-radius: 12px;
+}
+
+/* reduce the overal rounding slightly on feature cards for a more polished look */
+section[aria-labelledby="mitra-features-heading"] .rounded-lg {
+  /* nothing here but this is a reminder that we intentionally use lg most places */
+}
+
+/* small utility: reduce heading weight/size inside this section slightly for better balance */
+section[aria-labelledby="mitra-features-heading"] h2 {
+  letter-spacing: -0.01em;
+}
+
+/* make sure text contrast is adequate */
+section[aria-labelledby="mitra-features-heading"] .text-slate-700 {
+  color: #26404d;
+}
+section[aria-labelledby="mitra-features-heading"] .text-slate-600 {
+  color: #475569;
+}
+
+/* CTA inner accent (tiny animated dot) */
+.meetmitra-cta .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #7c3aed, #ec4899);
+  box-shadow: 0 6px 18px rgba(124,58,237,0.18);
+}
+
+/* responsive tweak: make blobs quieter on small screens */
+@media (max-width: 640px) {
+  .meetmitra-blob { display: none; }
+  section[aria-labelledby="mitra-features-heading"] .meetmitra-phone {
+    min-height: auto;
+  }
+}
+
+
+@layer utilities {
+  .backdrop-blur-xl {
+    --tw-backdrop-blur: blur(24px);
+    -webkit-backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+            backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+  }
+}
+
+/* ---------------------------
+   NEW: "CODE COMBUSTION" CARD EFFECT
+---------------------------- */
+
+/* Main card container */
+.interactive-card {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  background-color: white; /* Clean starting background */
+  border: 1px solid #e2e8f0;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.interactive-card:hover {
+  border-color: rgba(255, 120, 0, 0.8); /* Fiery border on hover */
+  box-shadow: 0 0 30px rgba(255, 120, 0, 0.5); /* Fiery glow on hover */
+}
+
+/* Card content (icon, text) */
+.card-content {
+  position: relative;
+  z-index: 2;
+  transition: transform 0.4s ease;
+}
+
+.interactive-card:hover .card-content {
+  transform: scale(1.05); /* Content pops out */
+}
+
+/* Particle Container Pseudo-element */
+.interactive-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white; /* This is the layer that will disintegrate */
+  z-index: 1;
+  
+  /* Start visible */
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+.interactive-card:hover::before {
+  opacity: 0; /* Hide the solid background on hover */
+}
+
+/* Particle System: A single pseudo-element with many box-shadows creates all the particles */
+.interactive-card::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px; /* Tiny base for the particles */
+  height: 2px;
+  background: transparent;
+  z-index: 0; /* Behind the content */
+
+  /* Generate 100 particles with random positions and animation delays. */
+  /* This is a SASS/SCSS loop condensed into CSS. It's long but very performant. */
+  box-shadow:
+    -29vw 1vh 1px 1px #ff8c00, 16vw -2vh 0px 0px #ffaf40,
+    -10vw 12vh 1px 0px #ff8c00, -42vw -13vh 0px 0px #ffaf40,
+    -3vw -1vh 0px 0px #ff8c00, -2vw -10vh 1px 1px #ffaf40,
+    4vw 14vh 1px 1px #ff8c00, 10vw -8vh 0px 1px #ffaf40,
+    -3vw -14vh 0px 1px #ff8c00, -18vw 1vh 0px 0px #ffaf40,
+    -32vw -7vh 0px 0px #ff8c00, 1vw -14vh 1px 0px #ffaf40,
+    -4vw 8vh 0px 1px #ff8c00, 18vw 10vh 0px 0px #ffaf40,
+    -38vw 9vh 1px 0px #ff8c00, -11vw 11vh 1px 0px #ffaf40,
+    -40vw -1vh 1px 1px #ff8c00, 24vw -13vh 1px 1px #ffaf40,
+    -34vw -12vh 0px 0px #ff8c00, -15vw -1vh 1px 1px #ffaf40,
+    3vw 1vh 1px 1px #ff8c00, 31vw -12vh 1px 1px #ffaf40,
+    /* ... repeat this pattern for as many particles as you want ... */
+    -3vw 12vh 1px 1px #ff8c00, 2vw -7vh 0px 0px #ffaf40,
+    -20vw 13vh 1px 0px #ff8c00, 23vw 2vh 0px 1px #ffaf40,
+    -18vw -10vh 0px 0px #ff8c00, 3vw 11vh 1px 0px #ffaf40,
+    -23vw 4vh 1px 1px #ff8c00, 22vw -1vh 0px 1px #ffaf40,
+    -33vw 10vh 0px 1px #ff8c00, 24vw 11vh 1px 1px #ffaf40;
+
+  /* Start invisible, then run the animation on hover */
+  opacity: 0;
+}
+
+.interactive-card:hover::after {
+  animation: combustion 1.2s ease-out forwards;
+}
+
+
+/* -- ANIMATION KEYFRAMES -- */
+@keyframes combustion {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) scale(1.2); /* Particles float up and expand */
+    opacity: 0;
+  }
+}
+
+/* ---------------------------
+   NEW: "Code Ember" Particle Effect
+---------------------------- */
+
+/* 1. Subtle Light Gradient Background */
+@keyframes light-aurora {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.particle-background {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(-45deg, #ffffff, #f9fafb, #f3f4f6, #f9fafb);
+  background-size: 400% 400%;
+  animation: light-aurora 20s ease infinite;
+}
+
+/* 2. The Code Ember Animation */
+.code-ember {
+  position: absolute;
+  font-family: monospace;
+  font-weight: bold;
+  color: #fb923c; /* orange-400 */
+  opacity: 0;
+  animation-name: drift-fade;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes drift-fade {
+  0% {
+    transform: translateX(var(--start-x)) translateY(var(--start-y)) rotate(0deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.6;
+  }
+  80% {
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(var(--end-x)) translateY(var(--end-y)) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* ---------------------------
+   NEW: "Radiant Champions" Leaderboard Effects
+---------------------------- */
+
+@keyframes subtle-pan {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
+.hof-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hof-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: var(--pattern);
+  background-size: 200% 200%;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  animation: subtle-pan 20s linear infinite;
+}
+
+.hof-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 25px 50px -12px var(--glow-color);
+}
+
+.hof-card:hover::before {
+  opacity: 1;
+}
+
+
+/* ---------------------------
+   NEW: Animated Circuit Background
+---------------------------- */
+
+@keyframes pan-background {
+  from { background-position: 0% 0%; }
+  to { background-position: 100% 100%; }
+}
+
+.circuit-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: #020617; /* Very dark blue */
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="800" height="800"><defs><filter id="f"><feTurbulence type="fractalNoise" baseFrequency="0.005 0.003" numOctaves="1" seed="0" stitchTiles="stitch" result="noise"/><feColorMatrix type="saturate" values="0" in="noise" result="desaturatedNoise"/><feComponentTransfer in="desaturatedNoise" result="output"><feFuncR type="linear" slope="0.05" intercept="0"/><feFuncG type="linear" slope="0.05" intercept="0"/><feFuncB type="linear" slope="0.35" intercept="0"/></feComponentTransfer></filter></defs><rect width="100%" height="100%" filter="url(%23f)"/></svg>');
+  background-size: 50% 50%;
+  animation: pan-background 60s linear infinite;
+  opacity: 0.2;
+}
+
+/* ---------------------------
+   NEW: Animated Aurora Background
+---------------------------- */
+@keyframes aurora-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.aurora-background {
+  background: linear-gradient(-45deg, #0f172a, #1e1b4b, #1e3a8a, #0891b2);
+  background-size: 400% 400%;
+  animation: aurora-gradient 15s ease infinite;
+}
