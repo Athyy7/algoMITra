@@ -1,41 +1,49 @@
 import React from 'react';
-import { Routes, Route, Link } from 'react-router-dom'; // Import router components
+import { Routes, Route, Link } from 'react-router-dom';
 
 // Your existing components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
 // Our new pages
-import HomePage from './pages/HomePage';     // Your homepage layout
-import AuthPage from './pages/AuthPage';     // The login/register page
-// We'll create these pages soon
-// import ProfilePage from './pages/ProfilePage'; 
-// import ProblemsPage from './pages/ProblemsPage';
-// import EditorPage from './pages/EditorPage';
-// import AiMitraPage from './pages/AiMitraPage';
+import HomePage from './pages/HomePage';
+import AuthPage from './pages/AuthPage';
+
+// --- NEW IMPORTS ---
+import ProfilePage from './pages/ProfilePage'; // 1. Import the profile page
+import ProtectedRoute from './components/ProtectedRoute'; // 2. Import the guard
 
 function App() {
   return (
     <div>
-      {/* Navbar is outside the Routes, so it stays on every page */}
+
       <Navbar />
 
       <main>
         <Routes>
-          {/* Route 1: Your Homepage */}
-          {/* This renders your original layout at "http://localhost:5173/" */}
+          {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
 
-          {/* Route 2: Our new Auth Page */}
-          {/* This renders the AuthPage at ".../login" and ".../register" */}
+
           <Route path="/login" element={<AuthPage />} />
+
           <Route path="/register" element={<AuthPage />} />
 
+          {/* --- NEW PROTECTED ROUTE --- */}
+          {/* This route is wrapped by ProtectedRoute */}
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            } 
+          />
+
           {/* TODO: Add these routes later
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/problems" element={<ProblemsPage />} />
-            <Route path="/problem/:id" element={<EditorPage />} />
-            <Route path="/mitra" element={<AiMitraPage />} />
+            <Route path="/problems" element={<ProtectedRoute><ProblemsPage /></ProtectedRoute>} />
+            <Route path="/problem/:id" element={<ProtectedRoute><EditorPage /></ProtectedRoute>} />
+            <Route path="/mitra" element={<ProtectedRoute><AiMitraPage /></ProtectedRoute>} />
           */}
           
           {/* A catch-all for 404s */}
@@ -50,7 +58,7 @@ function App() {
         </Routes>
       </main>
 
-      {/* Footer is also outside the Routes, so it stays on every page */}
+
       <Footer />
     </div>
 

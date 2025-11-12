@@ -20,16 +20,36 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Please provide a password.'],
     minlength: 6,
   },
-  // --- NEW FIELD ---
-  // This is the new field for Role-Based Access Control
   role: {
     type: String,
-    enum: ['student', 'teacher'], // Only allows these two values
-    default: 'student'           // Default new signups to 'student'
-  }
-  // We can add profile fields here later (like bio, photoUrl, etc.)
+    enum: ['student', 'teacher'], 
+    default: 'student'           
+  },
 
-}, { timestamps: true }); // Adds createdAt and updatedAt timestamps
+  // --- NEW PROFILE FIELDS ---
+  bio: {
+    type: String,
+    default: 'No bio yet. Click edit to add one!',
+    maxlength: 250
+  },
+  photoUrl: {
+    type: String,
+    default: '' // We'll use a placeholder on the frontend if this is empty
+  },
+  badges: {
+    type: [String],
+    default: ['New User'] // Start everyone with a default badge
+  },
+  // We'll store submission activity as a Map
+  // Key: "YYYY-MM-DD", Value: count
+  submissionActivity: {
+    type: Map,
+    of: Number,
+    default: {}
+  }
+  // --- END OF NEW FIELDS ---
+
+}, { timestamps: true }); 
 
 /**
  * @desc    Password Hashing Middleware

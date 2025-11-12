@@ -190,7 +190,7 @@ export default function ProblemArchive() {
                     </div>
                     <button className="inline-flex items-center gap-2 px-5 py-1.5 border border-slate-300 bg-white rounded-lg text-xs font-semibold text-slate-800 hover:bg-slate-50 transition-colors shadow-sm mt-3">
                         <Filter size={14} />
-                        Advanced Filters
+                        Solve more problems.
                     </button>
                 </div>
             </div>

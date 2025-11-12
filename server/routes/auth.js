@@ -1,9 +1,13 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import User from '../models/user.js'; // This path is correct
+import User from '../models/user.js';
+import { protect } from '../middleware/authMiddleware.js'; // Import protect middleware
 
 const router = express.Router();
+
+// Define the allowed email domain
+const ALLOWED_EMAIL_DOMAIN = '@mitwpu.edu.in';
 
 /**
  * @route   POST /api/auth/register
@@ -22,8 +26,15 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // --- NEW VALIDATION ---
-    // Validate the role
+    // --- NEW EMAIL VALIDATION ---
+    if (!email.endsWith(ALLOWED_EMAIL_DOMAIN)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid email. Only ${ALLOWED_EMAIL_DOMAIN} addresses are allowed.`
+      });
+    }
+    // --- END NEW VALIDATION ---
+
     if (role !== 'student' && role !== 'teacher') {
       return res.status(400).json({
         success: false,
@@ -41,31 +52,30 @@ router.post('/register', async (req, res) => {
     }
 
     // 3. Create new user instance
-    // The pre-save hook in '../models/user.js' will automatically hash the password
     const user = new User({
       name,
       email,
       password,
-      role // Save the new role
+      role
     });
 
     // 4. Save user to database
     await user.save();
 
-    // 5. Create JWT Payload (now with role!)
+    // 5. Create JWT Payload
     const payload = {
       id: user._id,
-      role: user.role // Add role to the token payload
+      role: user.role
     };
 
     // 6. Sign the token
     const token = jwt.sign(
       payload,
-      process.env.JWT_SECRET, // Ensure JWT_SECRET is in your .env
-      { expiresIn: '3d' } // Expires in 3 days
+      process.env.JWT_SECRET,
+      { expiresIn: '3d' } 
     );
 
-    // 7. Send success response with token and user info
+    // 7. Send success response
     res.status(201).json({
       success: true,
       token,
@@ -73,7 +83,7 @@ router.post('/register', async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role // Return the role in the response
+        role: user.role
       },
       message: 'User registered successfully.'
     });
@@ -97,15 +107,23 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1. Validate input
     if (!email || !password) {
       return res.status(400).json({
         success: false,
         message: 'Please provide both email and password.'
       });
     }
+    
+    // --- NEW LOGIN VALIDATION ---
+    // Also check login for valid domain, just in case
+    if (!email.endsWith(ALLOWED_EMAIL_DOMAIN)) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials. Please use a @mitwpu.edu.in email.'
+      });
+    }
+    // --- END NEW VALIDATION ---
 
-    // 2. Find user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({
@@ -114,7 +132,6 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // 3. Compare password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({
@@ -123,20 +140,17 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // 4. Create JWT Payload (now with role!)
     const payload = {
       id: user._id,
-      role: user.role // Add role to the token payload
+      role: user.role
     };
 
-    // 5. Sign the token
     const token = jwt.sign(
       payload,
-      process.env.JWT_SECRET, // Ensure JWT_SECRET is in your .env
+      process.env.JWT_SECRET,
       { expiresIn: '3d' }
     );
 
-    // 6. Send success response with token and user info
     res.status(200).json({
       success: true,
       token,
@@ -144,7 +158,7 @@ router.post('/login', async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role // Return the role in the response
+        role: user.role
       },
       message: 'User logged in successfully.'
     });
@@ -156,6 +170,33 @@ router.post('/login', async (req, res) => {
       message: 'Server error during login.',
       error: error.message
     });
+  }
+});
+
+
+/**
+ * @route   GET /api/auth/me
+ * @desc    Get current user's data (without password)
+ * @access  Private
+ */
+router.get('/me', protect, async (req, res) => {
+  try {
+    // req.user is attached by the 'protect' middleware
+    // We select '-password' to exclude the password hash
+    const user = await User.findById(req.user.id).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    res.status(200).json({
+      success: true,
+      user: user // Send the full user object (minus password)
+    });
+
+  } catch (error) {
+    console.error('Get Me Error:', error.message);
+    res.status(500).json({ success: false, message: 'Server Error' });
   }
 });
 

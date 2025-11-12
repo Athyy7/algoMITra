@@ -18,7 +18,7 @@ import { IoClose } from "react-icons/io5";
 const FormInput = ({
   id,
   label,
-  register,
+  register, // This will now be the complete register call from useForm
   error,
   type = "text",
   icon,
@@ -33,7 +33,7 @@ const FormInput = ({
       id={id}
       type={type === "password" && showPassword ? "text" : type}
       placeholder={label}
-      {...register(id, { required: `${label} is required` })}
+      {...register} // Spread the register props here
       className={`w-full py-3 pl-12 pr-10 bg-white/10 border-2 border-slate-300/40 rounded-xl text-slate-800 placeholder-slate-500 backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all duration-300 ${
         error ? "border-red-500" : ""
       }`}
@@ -68,25 +68,38 @@ const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const { register: authRegister, login } = useContext(AuthContext);
+  // 1. Get isAuthenticated from context
+  const { register: authRegister, login, isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
   const {
     register,
     handleSubmit,
+    watch, // Import watch to get password value
     formState: { errors },
     reset,
   } = useForm();
 
+  // Watch the password field to compare for confirmation
+  const password = watch("password");
+
   useEffect(() => {
     setIsLogin(location.pathname === "/login");
-  }, [location.pathname]);
+    setApiError(null); // Clear errors when switching forms
+    reset(); // Reset form fields
+  }, [location.pathname, reset]);
+
+  // 2. Add useEffect to redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/profile");
+    }
+  }, [isAuthenticated, navigate]);
 
   const toggleForm = () => {
     const newPath = isLogin ? "/register" : "/login";
     navigate(newPath);
-    setApiError(null);
-    reset();
+    // State update will trigger the useEffect above
   };
 
   const onSubmit = async (formData) => {
@@ -100,6 +113,7 @@ const AuthPage = () => {
         password: formData.password,
       });
     } else {
+      // useForm validation handles the password match, but this is a safe fallback.
       if (formData.password !== formData.confirmPassword) {
         setApiError("Passwords don't match, fam. Try again.");
         setIsLoading(false);
@@ -114,17 +128,18 @@ const AuthPage = () => {
     }
 
     setIsLoading(false);
-    if (result.success) {
-      navigate("/profile"); // We will create this page next
-    } else {
+    if (result && result.success) {
+      navigate("/profile"); // Redirect to profile on success
+    } else if (result) {
       setApiError(result.message);
+    } else {
+      setApiError("An unexpected error occurred.");
     }
   };
 
   return (
-    // IMPROVED: Using the same light-mode gradient from your Hero
     <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-b from-white to-slate-50 overflow-hidden pt-24 pb-32 font-[Inter] text-[15px] text-slate-900">
-      {/* IMPROVED: Stronger blobs */}
+      {/* Gradient blobs */}
       <motion.div
         className="absolute top-[-50px] left-[10%] w-[350px] h-[350px] bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-60"
         animate={{ y: [0, -30, 0], scale: [1, 1.05, 1] }}
@@ -152,7 +167,6 @@ const AuthPage = () => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: -40 }}
           transition={{ duration: 0.4 }}
-          // IMPROVED: Increased opacity and shadow for better contrast
           className="relative z-10 w-full max-w-md p-8 rounded-3xl border border-white/60 bg-white/70 shadow-2xl backdrop-blur-2xl"
           style={{
             boxShadow:
@@ -169,7 +183,9 @@ const AuthPage = () => {
                 <FormInput
                   id="name"
                   label="Full Name"
-                  register={register}
+                  register={register("name", { 
+                    required: "Full Name is required" 
+                  })}
                   error={errors.name}
                   icon={<FaUser />}
                 />
@@ -184,7 +200,6 @@ const AuthPage = () => {
                       type="button"
                       onClick={() => setRole("student")}
                       whileTap={{ scale: 0.97 }}
-                      // IMPROVED: Higher contrast on selection
                       className={`flex-1 py-3 rounded-xl border text-slate-700 text-sm font-medium transition-all ${
                         role === "student"
                           ? "border-slate-700 bg-white shadow-md"
@@ -199,7 +214,6 @@ const AuthPage = () => {
                       type="button"
                       onClick={() => setRole("teacher")}
                       whileTap={{ scale: 0.97 }}
-                      // IMPROVED: Higher contrast on selection
                       className={`flex-1 py-3 rounded-xl border text-slate-700 text-sm font-medium transition-all ${
                         role === "teacher"
                           ? "border-slate-700 bg-white shadow-md"
@@ -217,18 +231,27 @@ const AuthPage = () => {
             <FormInput
               id="email"
               label="Email"
-              register={register}
-              error={errors.email}
               type="email"
+              register={register("email", { 
+                required: "Email is required",
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@mitwpu\.edu\.in$/i,
+                  message: "Must be a valid @mitwpu.edu.in email"
+                }
+              })}
+              error={errors.email}
               icon={<FaEnvelope />}
             />
 
             <FormInput
               id="password"
               label="Password"
-              register={register}
-              error={errors.password}
               type="password"
+              register={register("password", {
+                required: "Password is required",
+                minLength: { value: 6, message: "Password must be at least 6 characters" }
+              })}
+              error={errors.password}
               icon={<FaLock />}
               showPassword={showPassword}
               togglePassword={() => setShowPassword(!showPassword)}
@@ -238,9 +261,13 @@ const AuthPage = () => {
               <FormInput
                 id="confirmPassword"
                 label="Confirm Password"
-                register={register}
-                error={errors.confirmPassword}
                 type="password"
+                register={register("confirmPassword", {
+                  required: "Please confirm your password",
+                  validate: (value) =>
+                    value === password || "Passwords don't match, fam. Try again."
+                })}
+                error={errors.confirmPassword}
                 icon={<FaLock />}
               />
             )}
@@ -254,7 +281,6 @@ const AuthPage = () => {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              // IMPROVED: Matched this button to your Navbar's "Sign In" button
               className="w-full py-3 font-semibold text-white bg-gradient-to-br from-slate-900 to-slate-700 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
             >
               {isLoading ? (

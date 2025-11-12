@@ -1,10 +1,13 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import cors from 'cors'; // Import cors
+import cors from 'cors'; 
 
-// Import auth routes
+// Import routes
 import authRoutes from './routes/auth.js';
+import profileRoutes from './routes/profile.js'; // Import new profile routes
+import problemRoutes from './routes/problem.js'; // Import new problem routes
+import { protect } from './middleware/authMiddleware.js'; // Import protect middleware
 
 // Load environment variables
 dotenv.config({ path: './.env' });
@@ -14,18 +17,18 @@ const PORT = process.env.PORT || 8080;
 const MONGO_URI = process.env.MONGO_URI;
 
 // --- Middleware ---
-// 1. Enable CORS for all origins
 app.use(cors()); 
-
-// 2. Enable JSON body parsing
 app.use(express.json());
 
 // --- API Routes ---
-// Mount the authentication routes
+// Public auth routes (login/register/getme)
 app.use('/api/auth', authRoutes);
 
-// (Future routes can be added here)
-// app.use('/api/problems', problemRoutes); 
+// Protected profile routes (get full profile, update profile)
+app.use('/api/profile', protect, profileRoutes); 
+
+// Protected problem routes (create problem, get problems)
+app.use('/api/problems', protect, problemRoutes); 
 
 // --- Database Connection ---
 mongoose.connect(MONGO_URI)

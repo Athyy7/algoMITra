@@ -1,12 +1,13 @@
 import React, { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
-import { jwtDecode } from 'jwt-decode'; // We need to install this!
+// import axios from 'axios'; // We no longer need this
+import api from '../api/axios'; // --- NEW: Import our central API instance
+import { jwtDecode } from 'jwt-decode'; 
 
 // 1. Create the Context
 export const AuthContext = createContext();
 
-// 2. Define the API URL (Set this to your server's URL)
-const API_URL = 'http://localhost:5000/api/auth';
+// 2. API URL is now handled in api/axios.js
+// const API_URL = 'http://localhost:5000/api/auth'; // <-- REMOVED
 
 // 3. Create the Provider Component
 export const AuthProvider = ({ children }) => {
@@ -16,27 +17,31 @@ export const AuthProvider = ({ children }) => {
 
   // Effect to load user data on app start
   useEffect(() => {
-    const loadUserFromToken = () => {
-      if (token) {
+    const loadUserFromToken = async () => {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
         try {
-          // Decode the token to get user info and check expiry
-          const decodedToken = jwtDecode(token);
+          // Check if token is expired
+          const decodedToken = jwtDecode(storedToken);
           const expiresAt = decodedToken.exp * 1000;
 
           if (expiresAt > Date.now()) {
-            // Token is valid
-            setUser({
-              id: decodedToken.id,
-              role: decodedToken.role,
-            });
-            // Set the token for all future axios requests
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            // Token is valid, now fetch fresh user data
+            // The token is already added by the axios interceptor in api.js
+            const { data } = await api.get('/api/auth/me');
+            if (data.success) {
+              setUser(data.user);
+              setToken(storedToken);
+            } else {
+              // Handle case where /me fails (e.g., user deleted)
+              logout();
+            }
           } else {
             // Token is expired
             logout();
           }
         } catch (error) {
-          console.error("Failed to decode token", error);
+          console.error("Failed to load user from token", error);
           logout(); // Clear bad token
         }
       }
@@ -44,28 +49,20 @@ export const AuthProvider = ({ children }) => {
     };
 
     loadUserFromToken();
-  }, [token]);
+  }, []); // Only run once on app load
 
   // --- Core Auth Functions ---
 
-  /**
-   * @desc    Registers a new user and logs them in
-   * @param   {object} userData - { name, email, password, role }
-   */
   const register = async (userData) => {
     try {
-      const { data } = await axios.post(`${API_URL}/register`, userData);
+      // Use our 'api' instance
+      const { data } = await api.post('/api/auth/register', userData);
 
       if (data.success) {
-        // Set token to localStorage and state
         localStorage.setItem('token', data.token);
         setToken(data.token);
-        
-        // Set user in state
         setUser(data.user);
-
-        // Set auth header for future requests
-        axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+        // No need to set headers, interceptor does it
         return { success: true };
       }
     } catch (error) {
@@ -74,24 +71,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /**
-   * @desc    Logs in an existing user
-   * @param   {object} credentials - { email, password }
-   */
   const login = async (credentials) => {
     try {
-      const { data } = await axios.post(`${API_URL}/login`, credentials);
+      // Use our 'api' instance
+      const { data } = await api.post('/api/auth/login', credentials);
 
       if (data.success) {
-        // Set token to localStorage and state
         localStorage.setItem('token', data.token);
         setToken(data.token);
-        
-        // Set user in state
         setUser(data.user);
-
-        // Set auth header for future requests
-        axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+        // No need to set headers, interceptor does it
         return { success: true };
       }
     } catch (error) {
@@ -100,15 +89,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /**
-   * @desc    Logs out the user
-   */
   const logout = () => {
-    // Clear everything
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
-    delete axios.defaults.headers.common['Authorization'];
+    // No need to delete headers
   };
 
   // 4. Pass down the context values
