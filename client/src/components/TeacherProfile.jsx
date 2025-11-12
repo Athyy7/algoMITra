@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LogOut, 
@@ -10,18 +10,59 @@ import {
   Trash2,
   Loader2,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  FileText,
+  List,
+  BarChart2
 } from 'lucide-react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import api from '../api/axios';
 
+// Helper to get the right color for difficulty
+const DifficultyBadge = ({ difficulty }) => {
+  const colors = {
+    Easy: 'bg-green-100 text-green-800',
+    Medium: 'bg-yellow-100 text-yellow-800',
+    Hard: 'bg-red-100 text-red-800',
+  };
+  return (
+    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[difficulty]}`}>
+      {difficulty}
+    </span>
+  );
+};
+
+
 // This component receives the profile data and the logout/edit functions
 const TeacherProfile = ({ profile, onEdit, onLogout }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState({ success: false, message: '' });
+  const [submitStatus, setSubmitStatus] = useState({ visible: false, success: false, message: '' });
+  
+  // --- NEW STATE FOR THE FEATURE ---
+  const [myProblems, setMyProblems] = useState([]);
+  const [problemsLoading, setProblemsLoading] = useState(true);
 
   // Helper function to capitalize roles
   const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
+
+  // --- NEW useEffect to fetch created problems ---
+  useEffect(() => {
+    const fetchMyProblems = async () => {
+      try {
+        setProblemsLoading(true);
+        const { data } = await api.get('/api/problems/my-problems');
+        if (data.success) {
+          setMyProblems(data.problems);
+        }
+      } catch (error) {
+        console.error("Failed to fetch teacher's problems", error);
+      } finally {
+        setProblemsLoading(false);
+      }
+    };
+
+    fetchMyProblems();
+  }, []); // Runs once when the component mounts
 
   // Setup form for creating problems
   const { register, control, handleSubmit, reset, formState: { errors } } = useForm({
@@ -42,24 +83,35 @@ const TeacherProfile = ({ profile, onEdit, onLogout }) => {
   // Handle the "Add Problem" form submission
   const onProblemSubmit = async (formData) => {
     setIsSubmitting(true);
-    setSubmitStatus({ success: false, message: '' });
+    setSubmitStatus({ visible: false, success: false, message: '' });
 
     try {
       const { data } = await api.post('/api/problems', formData);
       if (data.success) {
-        setSubmitStatus({ success: true, message: 'Problem created successfully!' });
+        setSubmitStatus({ visible: true, success: true, message: 'Problem created successfully!' });
         reset(); // Clear the form
-        // Reset field array to default
-        remove();
-        append({ input: '', output: '', isSample: true });
+        remove(); // Remove all fields
+        append({ input: '', output: '', isSample: true }); // Add one default field
+        
+        // --- NEW: Add the new problem to the top of the list in real-time ---
+        setMyProblems([data.problem, ...myProblems]);
       } else {
-        setSubmitStatus({ success: false, message: data.message || 'Failed to create problem.' });
+        setSubmitStatus({ visible: true, success: false, message: data.message || 'Failed to create problem.' });
       }
     } catch (err) {
-      setSubmitStatus({ success: false, message: err.response?.data?.message || 'An error occurred.' });
+      setSubmitStatus({ visible: true, success: false, message: err.response?.data?.message || 'An error occurred.' });
     } finally {
       setIsSubmitting(false);
+      setTimeout(() => setSubmitStatus({ ...submitStatus, visible: false }), 3000);
     }
+  };
+
+  // --- NEW: Calculate stats based on the fetched problems ---
+  const stats = {
+    total: myProblems.length,
+    easy: myProblems.filter(p => p.difficulty === 'Easy').length,
+    medium: myProblems.filter(p => p.difficulty === 'Medium').length,
+    hard: myProblems.filter(p => p.difficulty === 'Hard').length,
   };
 
 
@@ -127,9 +179,64 @@ const TeacherProfile = ({ profile, onEdit, onLogout }) => {
         </div>
       </div>
 
-      {/* --- Right Column: Create Problem Form --- */}
-      <div className="lg:col-span-2">
-        <h2 className="text-2xl font-bold text-slate-900 mb-4">Teacher Dashboard</h2>
+      {/* --- Right Column: Teacher Dashboard --- */}
+      <div className="lg:col-span-2 space-y-6">
+        <h2 className="text-2xl font-bold text-slate-900">Teacher Dashboard</h2>
+        
+        {/* --- NEW STATS SECTION --- */}
+        <div className="p-4 bg-white/30 border border-slate-300/40 rounded-xl backdrop-blur-xl">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4">Problem Stats</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-3 bg-white/30 border border-slate-300/40 rounded-xl">
+              <List className="w-6 h-6 text-blue-600 mb-2" />
+              <p className="text-xs text-slate-600">Total Created</p>
+              <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
+            </div>
+             <div className="p-3 bg-white/30 border border-slate-300/40 rounded-xl">
+              <BarChart2 className="w-6 h-6 text-green-600 mb-2" />
+              <p className="text-xs text-slate-600">Easy</p>
+              <p className="text-2xl font-bold text-slate-900">{stats.easy}</p>
+            </div>
+             <div className="p-3 bg-white/30 border border-slate-300/40 rounded-xl">
+              <BarChart2 className="w-6 h-6 text-yellow-600 mb-2" />
+              <p className="text-xs text-slate-600">Medium</p>
+              <p className="text-2xl font-bold text-slate-900">{stats.medium}</p>
+            </div>
+             <div className="p-3 bg-white/30 border border-slate-300/40 rounded-xl">
+              <BarChart2 className="w-6 h-6 text-red-600 mb-2" />
+              <p className="text-xs text-slate-600">Hard</p>
+              <p className="text-2xl font-bold text-slate-900">{stats.hard}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* --- NEW "MY PROBLEMS" LIST --- */}
+        <div className="p-4 bg-white/30 border border-slate-300/40 rounded-xl backdrop-blur-xl">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4">My Created Problems</h3>
+          <div className="max-h-60 overflow-y-auto space-y-3 pr-2">
+            {problemsLoading ? (
+              <div className="flex justify-center items-center h-20">
+                <Loader2 className="animate-spin text-slate-500" />
+              </div>
+            ) : myProblems.length === 0 ? (
+              <p className="text-sm text-slate-600 text-center py-4">You haven't created any problems yet. Use the form below to get started!</p>
+            ) : (
+              myProblems.map(problem => (
+                <div key={problem._id} className="flex justify-between items-center p-3 bg-white/50 border border-slate-300/50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-slate-800">{problem.title}</p>
+                    <p className="text-xs text-slate-500">
+                      Created on: {new Date(problem.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <DifficultyBadge difficulty={problem.difficulty} />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+        
+        {/* --- Create Problem Form (Existing) --- */}
         <form 
           onSubmit={handleSubmit(onProblemSubmit)} 
           className="p-6 bg-white/30 border border-slate-300/40 rounded-xl backdrop-blur-xl space-y-4"
@@ -195,13 +302,13 @@ const TeacherProfile = ({ profile, onEdit, onLogout }) => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <textarea
-                      {...register(`testCases.${index}.input`, { required: true })}
+                      {...register(`testCases.${index}.input`, { required: 'Input is required' })}
                       placeholder="Input"
                       rows="3"
                       className="block w-full py-2 px-3 bg-white/50 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
                     />
                     <textarea
-                      {...register(`testCases.${index}.output`, { required: true })}
+                      {...register(`testCases.${index}.output`, { required: 'Output is required' })}
                       placeholder="Output"
                       rows="3"
                       className="block w-full py-2 px-3 bg-white/50 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
@@ -248,7 +355,7 @@ const TeacherProfile = ({ profile, onEdit, onLogout }) => {
 
           {/* Success/Error Message */}
           <AnimatePresence>
-            {submitStatus.message && (
+            {submitStatus.visible && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}

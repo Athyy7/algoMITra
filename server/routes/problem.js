@@ -10,11 +10,10 @@ const router = express.Router();
  * @desc    Create a new problem
  * @access  Private (Teachers only)
  */
-router.post('/', protect, isTeacher, async (req, res) => {
+router.post('/', isTeacher, async (req, res) => {
   try {
     const { title, description, difficulty, testCases } = req.body;
 
-    // Basic validation
     if (!title || !description || !difficulty || !testCases || testCases.length === 0) {
       return res.status(400).json({
         success: false,
@@ -22,7 +21,6 @@ router.post('/', protect, isTeacher, async (req, res) => {
       });
     }
 
-    // Check if problem with this title already exists
     const existingProblem = await Problem.findOne({ title });
     if (existingProblem) {
       return res.status(409).json({
@@ -57,19 +55,37 @@ router.post('/', protect, isTeacher, async (req, res) => {
   }
 });
 
-// --- Future routes ---
-// You can add GET routes here for students to fetch problems
 /**
  * @route   GET /api/problems
- * @desc    Get all problems
+ * @desc    Get all problems (simplified)
  * @access  Private
  */
-router.get('/', protect, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const problems = await Problem.find({}).select('-testCases.output'); // Hide test case outputs
+    // This route is for students to see all problems
+    const problems = await Problem.find({}).select('-testCases.output'); 
     res.status(200).json({ success: true, problems });
   } catch (error) {
     console.error('Get Problems Error:', error.message);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
+
+/**
+ * @route   GET /api/problems/my-problems
+ * @desc    Get all problems created by the logged-in teacher
+ * @access  Private (Teachers only)
+ */
+router.get('/my-problems', isTeacher, async (req, res) => {
+  try {
+    // Find all problems where 'createdBy' matches the logged-in user's ID
+    const problems = await Problem.find({ createdBy: req.user.id })
+      .select('-testCases') // Exclude test cases to keep the list light
+      .sort({ createdAt: -1 }); // Show newest first
+
+    res.status(200).json({ success: true, problems });
+  } catch (error) {
+    console.error('Get My Problems Error:', error.message);
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 });
