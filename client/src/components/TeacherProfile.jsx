@@ -181,7 +181,7 @@ const TeacherProfile = ({ profile, onEdit, onLogout }) => {
 
       {/* --- Right Column: Teacher Dashboard --- */}
       <div className="lg:col-span-2 space-y-6">
-        <h2 className="text-2xl font-bold text-slate-900">Teacher Dashboard</h2>
+        <h2 className="text-2xl font-bold text-slate-900">Faculty Dashboard</h2>
         
         {/* --- NEW STATS SECTION --- */}
         <div className="p-4 bg-white/30 border border-slate-300/40 rounded-xl backdrop-blur-xl">

@@ -1,0 +1,59 @@
+# ----------------------------
+# Node / Server
+# ----------------------------
+node_modules/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ----------------------------
+# Build / Dist
+# ----------------------------
+dist/
+build/
+.cache/
+tmp/
+temp/
+
+# ----------------------------
+# Logs
+# ----------------------------
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ----------------------------
+# OS / Editor junk
+# ----------------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ----------------------------
+# Client / Vite / React
+# ----------------------------
+client/node_modules/
+client/dist/
+client/.env
+client/.env.*
+client/.vite/
+client/.eslintcache
+client/coverage/
+
+# ----------------------------
+# Server
+# ----------------------------
+server/node_modules/
+server/.env
+server/.env.*
+server/coverage/
